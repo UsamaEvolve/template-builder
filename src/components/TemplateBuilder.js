@@ -80,7 +80,7 @@ const TemplateBuilder = () => {
           <div className="toolbar">
             <div>
               <button
-                className="btn btn-sm btn-secondary me-2"
+                className="btn btn-sm btn-success me-2"
                 onClick={() => dispatch(togglePreviewMode())}
               >
                 {isPreviewMode ? "Edit Mode" : "Preview Mode"}
