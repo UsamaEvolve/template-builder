@@ -48,3 +48,7 @@ const WorkspaceCanvas = () => {
 };
 
 export default WorkspaceCanvas;
+// 1) Whatever styling I add during editing should also be saved and appear exactly the same in the preview.
+// 2) The image I upload should be displayed exactly the same in both the preview and the editor and add height and width of the image in the propertiespanel, user can change the height and width.
+// 3) Drag and drop is not working as expected.
+// 4) Flexbox is also not working exactly as it should.

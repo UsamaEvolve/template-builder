@@ -117,10 +117,15 @@ const PreviewMode = () => {
 
   // Render a form element based on its type
   const renderFormElement = (element) => {
+    console.log(element, "element");
     switch (element.type) {
       case "row":
         return (
-          <div key={element.id} className="row">
+          <div
+            //    style={{element.styles}}
+            key={element.id}
+            className="row"
+          >
             {element.children &&
               element.children.map((column) => renderFormElement(column))}
           </div>

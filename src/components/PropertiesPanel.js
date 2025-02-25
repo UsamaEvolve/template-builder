@@ -144,6 +144,7 @@ const PropertiesPanel = () => {
         <div className="row g-2">
           {["top", "right", "bottom", "left"].map((side) => (
             <div key={side} className="col-6">
+              <label className="text-muted">{side}</label>
               <input
                 type="number"
                 className="form-control"
@@ -160,6 +161,8 @@ const PropertiesPanel = () => {
         <div className="row g-2">
           {["top", "right", "bottom", "left"].map((side) => (
             <div key={side} className="col-6">
+              <label className="text-muted ">{side}</label>
+
               <input
                 type="number"
                 className="form-control"

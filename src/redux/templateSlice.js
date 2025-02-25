@@ -16,8 +16,8 @@ export const templateSlice = createSlice({
         id: `element-${state.nextId}`,
         ...action.payload,
         styles: {
-          margin: { top: 0, right: 0, bottom: 0, left: 0 },
-          padding: { top: 0, right: 0, bottom: 0, left: 0 },
+          margin: { top: 8, right: 8, bottom: 8, left: 8 },
+          padding: { top: 8, right: 8, bottom: 8, left: 8 },
           flex: { grow: 0, shrink: 1, basis: "auto" },
           display: "block",
           justifyContent: "flex-start",
