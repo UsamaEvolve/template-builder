@@ -1,24 +1,23 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./App.css";
+import TemplateBuilder from "./components/TemplateBuilder";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <Provider store={store}>
+      <div className="App">
+        <header
+          style={{ backgroundColor: "#004072" }}
+          className=" text-white p-3"
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+          <h3>Template Builder</h3>
+        </header>
+        <TemplateBuilder />
+      </div>
+    </Provider>
   );
 }
 
