@@ -10,14 +10,26 @@ const FormElement = ({ element, index, parentId }) => {
   );
   const isSelected = selectedElementId === element.id;
   const elementStyles = {
-    margin: `${element.styles.margin.top}px ${element.styles.margin.right}px ${element.styles.margin.bottom}px ${element.styles.margin.left}px`,
-    padding: `${element.styles.padding.top}px ${element.styles.padding.right}px ${element.styles.padding.bottom}px ${element.styles.padding.left}px`,
-    display: element.styles.display,
-    justifyContent: element.styles.justifyContent,
-    alignItems: element.styles.alignItems,
-    flexGrow: element.styles.flex.grow,
-    flexShrink: element.styles.flex.shrink,
-    flexBasis: element.styles.flex.basis,
+    margin: element.styles.margin
+      ? `${element.styles.margin.top || 8}px ${
+          element.styles.margin.right || 8
+        }px ${element.styles.margin.bottom || 8}px ${
+          element.styles.margin.left || 8
+        }px`
+      : "0px",
+    padding: element.styles.padding
+      ? `${element.styles.padding.top || 8}px ${
+          element.styles.padding.right || 8
+        }px ${element.styles.padding.bottom || 8}px ${
+          element.styles.padding.left || 8
+        }px`
+      : "0px",
+    display: element.styles.display || "block",
+    justifyContent: element.styles.justifyContent || "flex-start",
+    alignItems: element.styles.alignItems || "stretch",
+    flexGrow: element.styles.flex?.grow || 0,
+    flexShrink: element.styles.flex?.shrink || 1,
+    flexBasis: element.styles.flex?.basis || "auto",
   };
 
   const handleClick = (e) => {
