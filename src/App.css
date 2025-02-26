@@ -154,3 +154,18 @@
   border-bottom: 2px solid #004072;
   padding-bottom: 10px;
 }
+
+/* quotation Doc css  */
+.personalBorder {
+  border: 1px solid #00629b;
+}
+.headingBackground {
+  background-color: #00629b;
+  color: white;
+}
+.fw-600 {
+  font-weight: 600;
+}
+.normalTextPdf {
+  font-size: 14px;
+}

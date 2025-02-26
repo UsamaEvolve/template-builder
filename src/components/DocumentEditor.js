@@ -6,9 +6,14 @@ import FormElement from "./FormElement";
 
 const DocumentEditor = () => {
   const dispatch = useDispatch();
-  const documentContent = useSelector(
-    (state) => state.template.documentContent
-  );
+  const documentContent = useSelector((state) => {
+    console.log(
+      state.template.documentContent,
+      "state.template.documentContent"
+    );
+    return state.template.documentContent;
+  });
+
   const elements = useSelector((state) => state.template.elements);
   const selectedElementId = useSelector(
     (state) => state.template.selectedElementId
@@ -107,23 +112,58 @@ const DocumentEditor = () => {
     dispatch(selectElement(logoId));
   };
 
+  // Helper function to parse margin/padding values - handles both string and object formats
+  const parseSpacingValue = (value) => {
+    if (!value) return { top: 0, right: 0, bottom: 0, left: 0 };
+
+    if (typeof value === "string") {
+      return { top: 0, right: 0, bottom: 0, left: 0 };
+    }
+
+    // Handle object with numbered keys like {0: "0", top: 10}
+    if (typeof value === "object") {
+      return {
+        top: value.top || 0,
+        right: value.right || 0,
+        bottom: value.bottom || 0,
+        left: value.left || 0,
+      };
+    }
+
+    return { top: 0, right: 0, bottom: 0, left: 0 };
+  };
+
+  // Function to convert spacing object to CSS string
+  const spacingToCss = (spacingObj) => {
+    const spacing = parseSpacingValue(spacingObj);
+    return `${spacing.top}px ${spacing.right}px ${spacing.bottom}px ${spacing.left}px`;
+  };
+
   const getLogoStyles = () => {
     const alignment = documentContent?.logoAlignment || "left";
     const logoMargin = documentContent?.logoMargin || {
       top: 0,
+
       right: 0,
+
       bottom: 0,
+
       left: 0,
     };
+
     const logoPadding = documentContent?.logoPadding || {
       top: 0,
+
       right: 0,
+
       bottom: 0,
+
       left: 0,
     };
 
     const alignmentStyle = {
       margin: `${logoMargin.top}px ${logoMargin.right}px ${logoMargin.bottom}px ${logoMargin.left}px`,
+
       padding: `${logoPadding.top}px ${logoPadding.right}px ${logoPadding.bottom}px ${logoPadding.left}px`,
     };
 
@@ -155,9 +195,27 @@ const DocumentEditor = () => {
     }
   };
 
+  const getElementStyles = (field) => {
+    if (!documentContent?.styles) return {};
+
+    const fieldStyles = documentContent.styles[field] || {};
+    const margin = parseSpacingValue(fieldStyles.margin);
+    const padding = parseSpacingValue(fieldStyles.padding);
+
+    return {
+      margin: spacingToCss(margin),
+      padding: spacingToCss(padding),
+      display: fieldStyles.display || "block",
+    };
+  };
+
   const renderEditableField = (field, value, isMultiline = false) => {
     const fieldStyles = documentContent?.styles?.[field] || {};
     const isSelected = selectedElementId === `document-${field}`;
+
+    // Parse margin and padding properly
+    const margin = parseSpacingValue(fieldStyles.margin);
+    const padding = parseSpacingValue(fieldStyles.padding);
 
     // In DocumentEditor's renderEditableField function
     const isDocumentField = field.startsWith("document-");
@@ -172,10 +230,10 @@ const DocumentEditor = () => {
         className={`editable-field ${isSelected ? "selected" : ""}`}
         onClick={handleClick}
         style={{
-          margin: fieldStyles.margin,
-          padding: fieldStyles.padding,
-          display: fieldStyles.display,
-          flexGrow: fieldStyles.flex?.grow,
+          margin: spacingToCss(margin),
+          padding: spacingToCss(padding),
+          display: fieldStyles.display || "block",
+          flexGrow: fieldStyles.flex?.grow || "initial",
           // Add other style properties
         }}
       >
@@ -240,7 +298,6 @@ const DocumentEditor = () => {
                   selectedElementId === logoId ? "selected" : ""
                 }`}
                 style={{
-                  //   maxWidth: "200px",
                   cursor: "pointer",
                   width: documentContent?.logoWidth
                     ? `${documentContent?.logoWidth}px`
@@ -259,22 +316,32 @@ const DocumentEditor = () => {
           </label>
         </div>
 
-        <div className="document-date mb-3">
+        <div className="document-date mb-3" style={getElementStyles("date")}>
           {renderEditableField("date", document.date)}
         </div>
       </div>
 
-      <div className="document-body">
-        <div className="company-addresses mb-4">
+      <div className="document-body" style={getElementStyles("body")}>
+        <div
+          className="company-addresses mb-4"
+          style={getElementStyles("companyName")}
+        >
           <h4 className="mb-2">{document.companyName}</h4>
           {document.addresses.map((address, index) => (
-            <div key={index} className="address-line">
+            <div
+              key={index}
+              className="address-line"
+              style={getElementStyles("addresses")}
+            >
               {renderEditableField(`addresses[${index}]`, address)}
             </div>
           ))}
         </div>
 
-        <div className="accordia-address mb-4">
+        <div
+          className="accordia-address mb-4"
+          style={getElementStyles("accordiaAddress")}
+        >
           {renderEditableField(
             "accordiaAddress",
             document.accordiaAddress,
@@ -282,11 +349,14 @@ const DocumentEditor = () => {
           )}
         </div>
 
-        <h2 className="document-title mb-4">
+        <h2 className="document-title mb-4" style={getElementStyles("title")}>
           {renderEditableField("title", document.title)}
         </h2>
 
-        <div className="recipient-section mb-4">
+        <div
+          className="recipient-section mb-4"
+          style={getElementStyles("recipient")}
+        >
           {renderEditableField("recipient", document.recipient)}
         </div>
 
@@ -311,7 +381,10 @@ const DocumentEditor = () => {
           ))}
         </div>
 
-        <div className="document-footer mt-4">
+        <div
+          className="document-footer mt-4"
+          style={getElementStyles("footer")}
+        >
           {renderEditableField("footer", document.footer, true)}
         </div>
       </div>

@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Droppable } from "react-beautiful-dnd";
 import { clearSelection } from "../redux/templateSlice";
 import DocumentEditor from "./DocumentEditor";
+import Doc from "./doc";
 
 const WorkspaceCanvas = () => {
   const dispatch = useDispatch();
@@ -22,7 +23,8 @@ const WorkspaceCanvas = () => {
           ref={provided.innerRef}
           {...provided.droppableProps}
         >
-          <DocumentEditor />
+          <Doc />
+          {/* <DocumentEditor /> */}
           {/* {provided.placeholder} */}
           {/* {elements.length === 0 && (
             <div className="text-center text-muted p-5">
