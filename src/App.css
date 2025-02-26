@@ -100,3 +100,57 @@
   display: flex;
   align-items: center;
 }
+
+/* document css  */
+.document-editor {
+  /* max-width: 800px; */
+  margin: 0 auto;
+  padding: 20px;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.editable-field {
+  position: relative;
+  border: 1px dashed transparent;
+  padding: 4px;
+  margin: 2px 0;
+}
+
+.editable-field:hover {
+  border-color: #007bff;
+  cursor: text;
+}
+.editable-field input,
+.editable-field textarea {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.document-content p {
+  margin: 0;
+}
+
+.logo-upload-btn {
+  cursor: pointer;
+}
+
+.logo-placeholder {
+  padding: 20px;
+  border: 2px dashed #ccc;
+  text-align: center;
+  color: #666;
+}
+
+.section-title {
+  color: #004072;
+  margin-bottom: 10px;
+}
+
+.document-title {
+  color: #004072;
+  border-bottom: 2px solid #004072;
+  padding-bottom: 10px;
+}

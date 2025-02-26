@@ -4,6 +4,7 @@ import {
   updateElement,
   removeElement,
   updateElementStyles,
+  updateDocumentContent,
 } from "../redux/templateSlice";
 
 const PropertiesPanel = () => {
@@ -11,6 +12,8 @@ const PropertiesPanel = () => {
   const selectedElementId = useSelector(
     (state) => state.template.selectedElementId
   );
+  const documentContent =
+    useSelector((state) => state.template.documentContent) || {};
 
   // Helper function to find an element by ID in the nested structure
   const findElementById = (elements, id) => {
@@ -33,13 +36,24 @@ const PropertiesPanel = () => {
     ? findElementById(elements, selectedElementId)
     : null;
 
+  // Check if the selected element is the logo
+  const isLogo = selectedElementId === "logo-element";
   const handlePropertyChange = (property, value) => {
-    dispatch(
-      updateElement({
-        id: selectedElementId,
-        properties: { [property]: value },
-      })
-    );
+    if (isLogo) {
+      dispatch(
+        updateDocumentContent({
+          field: property,
+          value: value,
+        })
+      );
+    } else {
+      dispatch(
+        updateElement({
+          id: selectedElementId,
+          properties: { [property]: value },
+        })
+      );
+    }
   };
 
   const handleOptionChange = (index, property, value) => {
@@ -126,11 +140,108 @@ const PropertiesPanel = () => {
     const newFlex = { ...selectedElement.styles.flex, [property]: value };
     handleStyleChange("flex", newFlex);
   };
-  if (!selectedElement) {
+
+  const handleLogoAlignmentChange = (e) => {
+    dispatch(
+      updateDocumentContent({ field: "logoAlignment", value: e.target.value })
+    );
+  };
+
+  const handleLogoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        dispatch(
+          updateDocumentContent({ field: "logo", value: e.target.result })
+        );
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  if (!selectedElement && !isLogo) {
     return (
       <div className="properties-panel">
         <h4 className="mb-3">Properties</h4>
         <p className="text-muted">Select an element to edit its properties</p>
+      </div>
+    );
+  }
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        dispatch(
+          updateElement({
+            id: selectedElementId,
+            properties: { image: e.target.result },
+          })
+        );
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDimensionChange = (property, value) => {
+    dispatch(
+      updateElement({
+        id: selectedElementId,
+        properties: { [property]: Number(value) },
+      })
+    );
+  };
+
+  // Special rendering for logo properties
+  if (isLogo) {
+    return (
+      <div className="properties-panel">
+        <h4 className="mb-3">Logo Properties</h4>
+
+        <div className="mb-3">
+          <label className="form-label">Logo Alignment</label>
+          <select
+            className="form-select"
+            value={documentContent.logoAlignment || "left"}
+            onChange={handleLogoAlignmentChange}
+          >
+            <option value="left">Left</option>
+            <option value="center">Center</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Change Logo</label>
+          <input
+            type="file"
+            className="form-control"
+            accept="image/*"
+            onChange={handleLogoUpload}
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Logo Width</label>
+          <input
+            type="number"
+            className="form-control"
+            value={documentContent.logoWidth || ""}
+            onChange={(e) => handlePropertyChange("logoWidth", e.target.value)}
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Logo Height</label>
+          <input
+            type="number"
+            className="form-control"
+            value={documentContent.logoHeight || ""}
+            onChange={(e) => handlePropertyChange("logoHeight", e.target.value)}
+          />
+        </div>
       </div>
     );
   }
@@ -400,6 +511,39 @@ const PropertiesPanel = () => {
             </div>
           </>
         )}
+      {/* image upload  */}
+      {selectedElement.type === "image" && (
+        <div className="mb-3">
+          <label className="form-label">Image</label>
+          <input
+            type="file"
+            className="form-control"
+            onChange={handleImageChange}
+          />
+          <div className="row g-2 mt-2">
+            <div className="col-6">
+              <label className="text-muted">Width</label>
+              <input
+                type="number"
+                className="form-control"
+                value={selectedElement.width || ""}
+                onChange={(e) => handleDimensionChange("width", e.target.value)}
+              />
+            </div>
+            <div className="col-6">
+              <label className="text-muted">Height</label>
+              <input
+                type="number"
+                className="form-control"
+                value={selectedElement.height || ""}
+                onChange={(e) =>
+                  handleDimensionChange("height", e.target.value)
+                }
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="d-grid gap-2 mt-4">
         <button className="btn btn-danger" onClick={handleDeleteElement}>

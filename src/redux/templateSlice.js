@@ -5,6 +5,7 @@ const initialState = {
   selectedElementId: null,
   isPreviewMode: false,
   nextId: 1,
+  documentContent: null,
 };
 
 export const templateSlice = createSlice({
@@ -177,12 +178,36 @@ export const templateSlice = createSlice({
     resetTemplate: (state) => {
       return { ...initialState, nextId: state.nextId };
     },
+    updateDocumentContent: (state, action) => {
+      const { field, value } = action.payload;
+      if (field.startsWith("styles.")) {
+        const styleField = field.split(".")[1];
+        return {
+          ...state,
+          documentContent: {
+            ...state.documentContent,
+            styles: {
+              ...state.documentContent.styles,
+              [styleField]: value,
+            },
+          },
+        };
+      }
+      return {
+        ...state,
+        documentContent: {
+          ...state.documentContent,
+          [field]: value,
+        },
+      };
+    },
   },
 });
 
 export const {
   addElement,
   updateElement,
+  updateDocumentContent,
   updateElementStyles,
   removeElement,
   selectElement,
