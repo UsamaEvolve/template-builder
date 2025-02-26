@@ -16,13 +16,11 @@ const Doc = () => {
         </div>
         <div className="row">
           <div className="col">
-            <p className="fw-bold normalTextPdf">Client Company Name</p>
+            <p className="fw-bold normalTextPdf">matrix pharma 1</p>
             <p className="fw-bold normalTextPdf"></p>
-            <p className="fw-bold normalTextPdf">
-              Address Line 1, Address Line 2, Address Line 3
-            </p>
-            <p className="fw-bold normalTextPdf">City, State</p>
-            <p className="fw-bold normalTextPdf">Postal Code, Country</p>
+            <p className="fw-bold normalTextPdf">Vietnam</p>
+            <p className="fw-bold normalTextPdf">Hưng Yên, Hung Yên</p>
+            <p className="fw-bold normalTextPdf">32400, Vietnam</p>
           </div>
           <div className="col">
             <div className="text-end">
@@ -30,24 +28,25 @@ const Doc = () => {
                 className="fw-bold"
                 style={{ margin: "0", padding: "0", color: "grey" }}
               >
-                Office Name
+                ACCORDIA GLOBAL COMPLIANCE GROUP VIETNAM
               </p>
               <p className="fw-bold normalTextPdfWithBlueColor">
-                Office Address Line 1, Office Address Line 2, Office Address
-                Line 3
+                Room 3, Floor 6, No 23B, Road No 3, Block 2, An Khanh
               </p>
-              <p className="fw-bold normalTextPdfWithBlueColor">City, State</p>
               <p className="fw-bold normalTextPdfWithBlueColor">
-                Postal Code, Country
+                Thủ Đức, Ho Chi Minh
               </p>
+              <p className="fw-bold normalTextPdfWithBlueColor">Vietnam</p>
             </div>
           </div>
         </div>
         <div className="col my-3">
-          <h5 className="fw-600">Quotation Subject</h5>
+          <h5 className="fw-600">
+            Quotation for SMETA (FULL INITIAL AUDIT) Certivcation Sersicey
+          </h5>
         </div>
         <div className="col my-3">
-          <h5 className="fw-600">Salutation LastName</h5>
+          <h5 className="fw-600">DR Umair</h5>
         </div>
         <div className="col my-3">
           <p>
@@ -119,7 +118,7 @@ const Doc = () => {
         </div>
         <div className="col my-4">
           <p className="normalTextPdf">Sincerely, </p>
-          <p className="normalTextPdf">Quotation Sent By UserName</p>
+          <p className="normalTextPdf">Andy zoan</p>
         </div>
         <br />
         <br />
@@ -142,7 +141,9 @@ const Doc = () => {
 
         <div class="row ps-1">
           <div class="col mt-3 mx-2 pe-2">
-            <h5 class="fw-600">Quotation Number : 123456</h5>
+            <h5 class="fw-600">
+              Quotation Number : QUO-LO_VNM-351/14789/3019_rv1
+            </h5>
           </div>
           <div class="col mt-3 mx-1 pe-4 text-end">
             <h5 class="fw-600 pe-2">26 February 2025</h5>
