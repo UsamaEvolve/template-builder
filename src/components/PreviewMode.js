@@ -1,4 +1,3 @@
-// File: src/components/PreviewMode.js
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -6,6 +5,9 @@ import * as Yup from "yup";
 
 const PreviewMode = () => {
   const elements = useSelector((state) => state.template.elements);
+  const documentContent = useSelector(
+    (state) => state.template.documentContent || {}
+  );
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState(null);
 
@@ -115,16 +117,232 @@ const PreviewMode = () => {
     setSubmitting(false);
   };
 
+  const renderEditableField = (field, value, isMultiline = false) => {
+    const fieldStyles = documentContent?.styles?.[field] || {};
+
+    // Properly handle margin and padding objects
+    const getStyleValue = (styleObj) => {
+      if (!styleObj) return undefined;
+
+      if (typeof styleObj === "object") {
+        const { top = 0, right = 0, bottom = 0, left = 0 } = styleObj;
+        return `${top}px ${right}px ${bottom}px ${left}px`;
+      }
+
+      return styleObj;
+    };
+
+    const styles = {
+      margin: getStyleValue(fieldStyles.margin),
+      padding: getStyleValue(fieldStyles.padding),
+      display: fieldStyles.display || "block",
+      flexGrow: fieldStyles.flex?.grow,
+      flexShrink: fieldStyles.flex?.shrink,
+      flexBasis: fieldStyles.flex?.basis,
+      justifyContent: fieldStyles.justifyContent,
+      alignItems: fieldStyles.alignItems,
+    };
+
+    return (
+      <div className="editable-field" style={styles}>
+        {isMultiline ? (
+          <textarea
+            value={value || ""}
+            readOnly
+            className="form-control"
+            style={{ width: "100%", minHeight: "80px" }}
+          />
+        ) : (
+          <input
+            type="text"
+            value={value || ""}
+            readOnly
+            className="form-control"
+          />
+        )}
+      </div>
+    );
+  };
+
+  // Function to get logo alignment style
+  const getLogoAlignmentStyle = () => {
+    const alignment = documentContent.logoAlignment || "left";
+    const logoMargin = documentContent.logoMargin || {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    };
+    const logoPadding = documentContent.logoPadding || {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    };
+
+    const margin = `${logoMargin.top}px ${logoMargin.right}px ${logoMargin.bottom}px ${logoMargin.left}px`;
+    const padding = `${logoPadding.top}px ${logoPadding.right}px ${logoPadding.bottom}px ${logoPadding.left}px`;
+
+    const baseStyle = {
+      margin,
+      padding,
+      display: "block",
+    };
+
+    switch (alignment) {
+      case "center":
+        return {
+          ...baseStyle,
+          marginLeft: "auto",
+          marginRight: "auto",
+          textAlign: "center",
+        };
+      case "right":
+        return {
+          ...baseStyle,
+          marginLeft: "auto",
+          textAlign: "right",
+        };
+      default: // "left"
+        return {
+          ...baseStyle,
+          marginRight: "auto",
+          textAlign: "left",
+        };
+    }
+  };
+
+  // Render document header content
+  const renderDocumentHeader = () => {
+    return (
+      <div className="document-preview mb-5 pb-4 border-bottom">
+        <div className="document-header mb-4">
+          <div className="logo-section mb-3" style={getLogoAlignmentStyle()}>
+            {documentContent.logo && (
+              <img
+                src={documentContent.logo}
+                alt="Company Logo"
+                className="company-logo"
+                style={{
+                  width: documentContent.logoWidth
+                    ? `${documentContent.logoWidth}px`
+                    : "auto",
+                  height: documentContent.logoHeight
+                    ? `${documentContent.logoHeight}px`
+                    : "auto",
+                }}
+              />
+            )}
+          </div>
+
+          <div className="document-date mb-3">
+            {renderEditableField("date", documentContent.date)}
+          </div>
+        </div>
+
+        <div className="document-body">
+          <div className="company-addresses mb-4">
+            <h4 className="mb-2">{documentContent.companyName}</h4>
+            {documentContent.addresses &&
+              documentContent.addresses.map((address, index) => (
+                <div key={index} className="address-line">
+                  {renderEditableField(`addresses[${index}]`, address)}
+                </div>
+              ))}
+          </div>
+
+          <div className="accordia-address mb-4">
+            {renderEditableField(
+              "accordiaAddress",
+              documentContent.accordiaAddress,
+              true
+            )}
+          </div>
+
+          <h2 className="document-title mb-4">
+            {renderEditableField("title", documentContent.title)}
+          </h2>
+
+          <div className="recipient-section mb-4">
+            {renderEditableField("recipient", documentContent.recipient)}
+          </div>
+
+          <div className="document-content mb-4">
+            {renderEditableField("body", documentContent.body, true)}
+          </div>
+
+          <div className="document-sections mb-4">
+            {documentContent.sections &&
+              documentContent.sections.map((section, index) => (
+                <div key={index} className="section mb-3">
+                  <h4 className="section-title">
+                    {renderEditableField(
+                      `sections[${index}].title`,
+                      section.title
+                    )}
+                  </h4>
+                  <div className="section-content">
+                    {renderEditableField(
+                      `sections[${index}].content`,
+                      section.content,
+                      true
+                    )}
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          <div className="document-footer mt-4">
+            {renderEditableField("footer", documentContent.footer, true)}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Render a form element based on its type
   const renderFormElement = (element) => {
-    console.log(element, "element");
+    // Apply element styles from styles object
+    const getElementStyles = (element) => {
+      if (!element.styles) return {};
+
+      const { margin, padding, display, flex, justifyContent, alignItems } =
+        element.styles;
+
+      const styles = {};
+
+      // Handle margin and padding objects
+      if (margin) {
+        const { top = 0, right = 0, bottom = 0, left = 0 } = margin;
+        styles.margin = `${top}px ${right}px ${bottom}px ${left}px`;
+      }
+
+      if (padding) {
+        const { top = 0, right = 0, bottom = 0, left = 0 } = padding;
+        styles.padding = `${top}px ${right}px ${bottom}px ${left}px`;
+      }
+
+      if (display) styles.display = display;
+
+      if (flex) {
+        styles.flexGrow = flex.grow;
+        styles.flexShrink = flex.shrink;
+        styles.flexBasis = flex.basis;
+      }
+
+      if (justifyContent) styles.justifyContent = justifyContent;
+      if (alignItems) styles.alignItems = alignItems;
+
+      return styles;
+    };
+
     switch (element.type) {
       case "row":
         return (
           <div
-            //    style={{element.styles}}
             key={element.id}
             className="row"
+            style={getElementStyles(element)}
           >
             {element.children &&
               element.children.map((column) => renderFormElement(column))}
@@ -133,7 +351,11 @@ const PreviewMode = () => {
 
       case "column":
         return (
-          <div key={element.id} className="col">
+          <div
+            key={element.id}
+            className="col"
+            style={getElementStyles(element)}
+          >
             {element.children &&
               element.children.map((child) => renderFormElement(child))}
           </div>
@@ -141,7 +363,11 @@ const PreviewMode = () => {
 
       case "input":
         return (
-          <div key={element.id} className="mb-3">
+          <div
+            key={element.id}
+            className="mb-3"
+            style={getElementStyles(element)}
+          >
             <label htmlFor={element.name} className="form-label">
               {element.label}
               {element.required && <span className="text-danger">*</span>}
@@ -165,7 +391,11 @@ const PreviewMode = () => {
 
       case "textarea":
         return (
-          <div key={element.id} className="mb-3">
+          <div
+            key={element.id}
+            className="mb-3"
+            style={getElementStyles(element)}
+          >
             <label htmlFor={element.name} className="form-label">
               {element.label}
               {element.required && <span className="text-danger">*</span>}
@@ -188,7 +418,11 @@ const PreviewMode = () => {
 
       case "checkbox":
         return (
-          <div key={element.id} className="mb-3 form-check">
+          <div
+            key={element.id}
+            className="mb-3 form-check"
+            style={getElementStyles(element)}
+          >
             <Field
               type="checkbox"
               className="form-check-input"
@@ -209,7 +443,11 @@ const PreviewMode = () => {
 
       case "select":
         return (
-          <div key={element.id} className="mb-3">
+          <div
+            key={element.id}
+            className="mb-3"
+            style={getElementStyles(element)}
+          >
             <label htmlFor={element.name} className="form-label">
               {element.label}
               {element.required && <span className="text-danger">*</span>}
@@ -238,7 +476,11 @@ const PreviewMode = () => {
 
       case "file":
         return (
-          <div key={element.id} className="mb-3">
+          <div
+            key={element.id}
+            className="mb-3"
+            style={getElementStyles(element)}
+          >
             <label htmlFor={element.name} className="form-label">
               {element.label}
               {element.required && <span className="text-danger">*</span>}
@@ -251,7 +493,6 @@ const PreviewMode = () => {
               onChange={(event) => {
                 // This is needed for file inputs as Formik doesn't handle them directly
                 const file = event.currentTarget.files[0];
-                // You would typically handle the file here (e.g., store in state or upload)
                 console.log("File selected:", file);
               }}
             />
@@ -260,6 +501,26 @@ const PreviewMode = () => {
               component="div"
               className="text-danger"
             />
+          </div>
+        );
+
+      case "image":
+        return (
+          <div
+            key={element.id}
+            className="mb-3"
+            style={getElementStyles(element)}
+          >
+            {element.image && (
+              <img
+                src={element.image}
+                alt={element.label || "Image"}
+                style={{
+                  width: element.width ? `${element.width}px` : "auto",
+                  height: element.height ? `${element.height}px` : "auto",
+                }}
+              />
+            )}
           </div>
         );
 
@@ -295,6 +556,9 @@ const PreviewMode = () => {
   return (
     <div className="preview-mode">
       <h4 className="mb-4">Form Preview</h4>
+
+      {/* Render document content before the form */}
+      {renderDocumentHeader()}
 
       {elements.length === 0 ? (
         <div className="alert alert-info">

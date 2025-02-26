@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   updateElement,
@@ -14,6 +14,15 @@ const PropertiesPanel = () => {
   );
   const documentContent =
     useSelector((state) => state.template.documentContent) || {};
+
+  // Check if selected element is a document field
+  const isDocumentField =
+    selectedElementId && selectedElementId.startsWith("document-");
+
+  // Extract the field name from the ID if it's a document field
+  const documentField = isDocumentField
+    ? selectedElementId.replace("document-", "")
+    : null;
 
   // Helper function to find an element by ID in the nested structure
   const findElementById = (elements, id) => {
@@ -32,12 +41,75 @@ const PropertiesPanel = () => {
   };
 
   const elements = useSelector((state) => state.template.elements);
-  const selectedElement = selectedElementId
-    ? findElementById(elements, selectedElementId)
-    : null;
+  const selectedElement =
+    selectedElementId &&
+    !isDocumentField &&
+    selectedElementId !== "logo-element"
+      ? findElementById(elements, selectedElementId)
+      : null;
 
   // Check if the selected element is the logo
   const isLogo = selectedElementId === "logo-element";
+
+  // Handler for document field styles
+  const handleDocumentFieldStyleChange = (property, value) => {
+    if (documentField) {
+      const currentStyles = documentContent.styles?.[documentField] || {};
+      dispatch(
+        updateDocumentContent({
+          field: "styles",
+          value: {
+            ...documentContent.styles,
+            [documentField]: {
+              ...currentStyles,
+              [property]: value,
+            },
+          },
+        })
+      );
+    }
+  };
+
+  // Handler for document field margin and padding
+  const handleDocumentFieldSpacingChange = (type, side, value) => {
+    if (documentField) {
+      const currentStyles = documentContent.styles?.[documentField] || {};
+      const currentSpacing = currentStyles[type] || {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+      };
+
+      dispatch(
+        updateDocumentContent({
+          field: "styles",
+          value: {
+            ...documentContent.styles,
+            [documentField]: {
+              ...currentStyles,
+              [type]: {
+                ...currentSpacing,
+                [side]: Number(value),
+              },
+            },
+          },
+        })
+      );
+    }
+  };
+
+  const handleDocumentFieldContentChange = (value) => {
+    if (documentField) {
+      dispatch(
+        updateDocumentContent({
+          field: documentField,
+          value: value,
+        })
+      );
+    }
+  };
+
   const handlePropertyChange = (property, value) => {
     if (isLogo) {
       dispatch(
@@ -46,6 +118,8 @@ const PropertiesPanel = () => {
           value: value,
         })
       );
+    } else if (isDocumentField) {
+      handleDocumentFieldContentChange(value);
     } else {
       dispatch(
         updateElement({
@@ -109,36 +183,87 @@ const PropertiesPanel = () => {
   };
 
   const handleStyleChange = (property, value) => {
-    dispatch(
-      updateElementStyles({
-        id: selectedElementId,
-        styles: { [property]: value },
-      })
-    );
+    if (isDocumentField) {
+      handleDocumentFieldStyleChange(property, value);
+    } else {
+      dispatch(
+        updateElementStyles({
+          id: selectedElementId,
+          styles: { [property]: value },
+        })
+      );
+    }
   };
 
   const handleMarginChange = (side, value) => {
-    const numericValue = Number(value);
-
-    const newMargin = {
-      ...selectedElement.styles.margin,
-      [side]: numericValue,
-    };
-    handleStyleChange("margin", newMargin);
+    if (isLogo) {
+      const newMargin = {
+        ...(documentContent.logoMargin || {
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+        }),
+        [side]: Number(value),
+      };
+      dispatch(
+        updateDocumentContent({ field: "logoMargin", value: newMargin })
+      );
+    } else if (isDocumentField) {
+      handleDocumentFieldSpacingChange("margin", side, value);
+    } else if (selectedElement) {
+      const numericValue = Number(value);
+      const newMargin = {
+        ...selectedElement.styles.margin,
+        [side]: numericValue,
+      };
+      handleStyleChange("margin", newMargin);
+    }
   };
 
   const handlePaddingChange = (side, value) => {
-    const numericValue = Number(value);
-    const newPadding = {
-      ...selectedElement.styles.padding,
-      [side]: numericValue,
-    };
-    handleStyleChange("padding", newPadding);
+    if (isLogo) {
+      const newPadding = {
+        ...(documentContent.logoPadding || {
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+        }),
+        [side]: Number(value),
+      };
+      dispatch(
+        updateDocumentContent({ field: "logoPadding", value: newPadding })
+      );
+    } else if (isDocumentField) {
+      handleDocumentFieldSpacingChange("padding", side, value);
+    } else if (selectedElement) {
+      const numericValue = Number(value);
+      const newPadding = {
+        ...selectedElement.styles.padding,
+        [side]: numericValue,
+      };
+      handleStyleChange("padding", newPadding);
+    }
   };
 
   const handleFlexChange = (property, value) => {
-    const newFlex = { ...selectedElement.styles.flex, [property]: value };
-    handleStyleChange("flex", newFlex);
+    if (isDocumentField) {
+      const currentStyles = documentContent.styles?.[documentField] || {};
+      const currentFlex = currentStyles.flex || {
+        grow: 0,
+        shrink: 1,
+        basis: "auto",
+      };
+
+      handleDocumentFieldStyleChange("flex", {
+        ...currentFlex,
+        [property]: value,
+      });
+    } else if (selectedElement) {
+      const newFlex = { ...selectedElement.styles.flex, [property]: value };
+      handleStyleChange("flex", newFlex);
+    }
   };
 
   const handleLogoAlignmentChange = (e) => {
@@ -159,15 +284,6 @@ const PropertiesPanel = () => {
       reader.readAsDataURL(file);
     }
   };
-
-  if (!selectedElement && !isLogo) {
-    return (
-      <div className="properties-panel">
-        <h4 className="mb-3">Properties</h4>
-        <p className="text-muted">Select an element to edit its properties</p>
-      </div>
-    );
-  }
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -194,8 +310,244 @@ const PropertiesPanel = () => {
     );
   };
 
+  if (!selectedElement && !isLogo && !isDocumentField) {
+    return (
+      <div className="properties-panel">
+        <h4 className="mb-3">Properties</h4>
+        <p className="text-muted">Select an element to edit its properties</p>
+      </div>
+    );
+  }
+
+  // Special rendering for document field properties
+  if (isDocumentField) {
+    const fieldStyles = documentContent.styles?.[documentField] || {
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      padding: { top: 0, right: 0, bottom: 0, left: 0 },
+      display: "block",
+      flex: { grow: 0, shrink: 1, basis: "auto" },
+    };
+
+    const fieldContent = documentField.includes("[")
+      ? getNestedValue(documentContent, documentField)
+      : documentContent[documentField];
+
+    return (
+      <div className="properties-panel">
+        <h4 className="mb-3">Document Field Properties</h4>
+
+        <div className="mb-3">
+          <label className="form-label">Field Name</label>
+          <input
+            type="text"
+            className="form-control"
+            value={documentField}
+            disabled
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Content</label>
+          <textarea
+            className="form-control"
+            value={fieldContent || ""}
+            onChange={(e) => handleDocumentFieldContentChange(e.target.value)}
+            rows="3"
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Display</label>
+          <select
+            className="form-select"
+            value={fieldStyles.display || "block"}
+            onChange={(e) =>
+              handleDocumentFieldStyleChange("display", e.target.value)
+            }
+          >
+            <option value="block">Block</option>
+            <option value="flex">Flex</option>
+            <option value="inline">Inline</option>
+            <option value="inline-block">Inline Block</option>
+          </select>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Margin</label>
+          <div className="row g-2">
+            {["top", "right", "bottom", "left"].map((side) => (
+              <div key={side} className="col-6">
+                <label className="text-muted">{side}</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder={side}
+                  value={fieldStyles.margin?.[side] || 0}
+                  onChange={(e) => handleMarginChange(side, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Padding</label>
+          <div className="row g-2">
+            {["top", "right", "bottom", "left"].map((side) => (
+              <div key={side} className="col-6">
+                <label className="text-muted">{side}</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder={side}
+                  value={fieldStyles.padding?.[side] || 0}
+                  onChange={(e) => handlePaddingChange(side, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Font Style</label>
+          <div className="row g-2">
+            <div className="col-6">
+              <select
+                className="form-select"
+                value={fieldStyles.fontWeight || "normal"}
+                onChange={(e) =>
+                  handleDocumentFieldStyleChange("fontWeight", e.target.value)
+                }
+              >
+                <option value="normal">Normal</option>
+                <option value="bold">Bold</option>
+                <option value="bolder">Bolder</option>
+                <option value="lighter">Lighter</option>
+              </select>
+            </div>
+            <div className="col-6">
+              <select
+                className="form-select"
+                value={fieldStyles.fontStyle || "normal"}
+                onChange={(e) =>
+                  handleDocumentFieldStyleChange("fontStyle", e.target.value)
+                }
+              >
+                <option value="normal">Normal</option>
+                <option value="italic">Italic</option>
+                <option value="oblique">Oblique</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Text Alignment</label>
+          <select
+            className="form-select"
+            value={fieldStyles.textAlign || "left"}
+            onChange={(e) =>
+              handleDocumentFieldStyleChange("textAlign", e.target.value)
+            }
+          >
+            <option value="left">Left</option>
+            <option value="center">Center</option>
+            <option value="right">Right</option>
+            <option value="justify">Justify</option>
+          </select>
+        </div>
+
+        {fieldStyles.display === "flex" && (
+          <>
+            <div className="mb-3">
+              <label className="form-label">Flexbox</label>
+              <div className="row g-2">
+                <div className="col-6">
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Grow"
+                    value={fieldStyles.flex?.grow || 0}
+                    onChange={(e) => handleFlexChange("grow", e.target.value)}
+                  />
+                </div>
+                <div className="col-6">
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Shrink"
+                    value={fieldStyles.flex?.shrink || 1}
+                    onChange={(e) => handleFlexChange("shrink", e.target.value)}
+                  />
+                </div>
+                <div className="col-12">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Basis"
+                    value={fieldStyles.flex?.basis || "auto"}
+                    onChange={(e) => handleFlexChange("basis", e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Justify Content</label>
+              <select
+                className="form-select"
+                value={fieldStyles.justifyContent || "flex-start"}
+                onChange={(e) =>
+                  handleDocumentFieldStyleChange(
+                    "justifyContent",
+                    e.target.value
+                  )
+                }
+              >
+                <option value="flex-start">Flex Start</option>
+                <option value="flex-end">Flex End</option>
+                <option value="center">Center</option>
+                <option value="space-between">Space Between</option>
+                <option value="space-around">Space Around</option>
+              </select>
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Align Items</label>
+              <select
+                className="form-select"
+                value={fieldStyles.alignItems || "stretch"}
+                onChange={(e) =>
+                  handleDocumentFieldStyleChange("alignItems", e.target.value)
+                }
+              >
+                <option value="stretch">Stretch</option>
+                <option value="flex-start">Flex Start</option>
+                <option value="flex-end">Flex End</option>
+                <option value="center">Center</option>
+                <option value="baseline">Baseline</option>
+              </select>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
   // Special rendering for logo properties
   if (isLogo) {
+    const logoMargin = documentContent.logoMargin || {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    };
+    const logoPadding = documentContent.logoPadding || {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    };
     return (
       <div className="properties-panel">
         <h4 className="mb-3">Logo Properties</h4>
@@ -242,10 +594,46 @@ const PropertiesPanel = () => {
             onChange={(e) => handlePropertyChange("logoHeight", e.target.value)}
           />
         </div>
+        <div className="mb-3">
+          <label className="form-label">Margin</label>
+          <div className="row g-2">
+            {["top", "right", "bottom", "left"].map((side) => (
+              <div key={side} className="col-6">
+                <label className="text-muted">{side}</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder={side}
+                  value={logoMargin[side]}
+                  onChange={(e) => handleMarginChange(side, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Padding</label>
+          <div className="row g-2">
+            {["top", "right", "bottom", "left"].map((side) => (
+              <div key={side} className="col-6">
+                <label className="text-muted">{side}</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder={side}
+                  value={logoPadding[side]}
+                  onChange={(e) => handlePaddingChange(side, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
+  // Render properties for normal form elements
   return (
     <div className="properties-panel">
       <h4 className="mb-3">Properties</h4>
@@ -260,7 +648,7 @@ const PropertiesPanel = () => {
                 type="number"
                 className="form-control"
                 placeholder={side}
-                value={selectedElement.styles.margin[side]}
+                value={selectedElement.styles?.margin?.[side] || 0}
                 onChange={(e) => handleMarginChange(side, e.target.value)}
               />
             </div>
@@ -278,7 +666,7 @@ const PropertiesPanel = () => {
                 type="number"
                 className="form-control"
                 placeholder={side}
-                value={selectedElement.styles.padding[side]}
+                value={selectedElement.styles?.padding?.[side] || 0}
                 onChange={(e) => handlePaddingChange(side, e.target.value)}
               />
             </div>
@@ -293,7 +681,7 @@ const PropertiesPanel = () => {
               type="number"
               className="form-control"
               placeholder="Grow"
-              value={selectedElement.styles.flex.grow}
+              value={selectedElement.styles?.flex?.grow || 0}
               onChange={(e) => handleFlexChange("grow", e.target.value)}
             />
           </div>
@@ -302,7 +690,7 @@ const PropertiesPanel = () => {
               type="number"
               className="form-control"
               placeholder="Shrink"
-              value={selectedElement.styles.flex.shrink}
+              value={selectedElement.styles?.flex?.shrink || 1}
               onChange={(e) => handleFlexChange("shrink", e.target.value)}
             />
           </div>
@@ -311,7 +699,7 @@ const PropertiesPanel = () => {
               type="text"
               className="form-control"
               placeholder="Basis"
-              value={selectedElement.styles.flex.basis}
+              value={selectedElement.styles?.flex?.basis || "auto"}
               onChange={(e) => handleFlexChange("basis", e.target.value)}
             />
           </div>
@@ -321,7 +709,7 @@ const PropertiesPanel = () => {
         <label className="form-label">Display</label>
         <select
           className="form-select"
-          value={selectedElement.styles.display}
+          value={selectedElement.styles?.display || "block"}
           onChange={(e) => handleStyleChange("display", e.target.value)}
         >
           <option value="block">Block</option>
@@ -330,37 +718,42 @@ const PropertiesPanel = () => {
           <option value="inline-block">Inline Block</option>
         </select>
       </div>
-      {/* Justify Content Controls */}
-      <div className="mb-3">
-        <label className="form-label">Justify Content</label>
-        <select
-          className="form-select"
-          value={selectedElement.styles.justifyContent}
-          onChange={(e) => handleStyleChange("justifyContent", e.target.value)}
-        >
-          <option value="flex-start">Flex Start</option>
-          <option value="flex-end">Flex End</option>
-          <option value="center">Center</option>
-          <option value="space-between">Space Between</option>
-          <option value="space-around">Space Around</option>
-        </select>
-      </div>
 
-      {/* Align Items Controls */}
-      <div className="mb-3">
-        <label className="form-label">Align Items</label>
-        <select
-          className="form-select"
-          value={selectedElement.styles.alignItems}
-          onChange={(e) => handleStyleChange("alignItems", e.target.value)}
-        >
-          <option value="stretch">Stretch</option>
-          <option value="flex-start">Flex Start</option>
-          <option value="flex-end">Flex End</option>
-          <option value="center">Center</option>
-          <option value="baseline">Baseline</option>
-        </select>
-      </div>
+      {selectedElement.styles?.display === "flex" && (
+        <>
+          <div className="mb-3">
+            <label className="form-label">Justify Content</label>
+            <select
+              className="form-select"
+              value={selectedElement.styles?.justifyContent || "flex-start"}
+              onChange={(e) =>
+                handleStyleChange("justifyContent", e.target.value)
+              }
+            >
+              <option value="flex-start">Flex Start</option>
+              <option value="flex-end">Flex End</option>
+              <option value="center">Center</option>
+              <option value="space-between">Space Between</option>
+              <option value="space-around">Space Around</option>
+            </select>
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Align Items</label>
+            <select
+              className="form-select"
+              value={selectedElement.styles?.alignItems || "stretch"}
+              onChange={(e) => handleStyleChange("alignItems", e.target.value)}
+            >
+              <option value="stretch">Stretch</option>
+              <option value="flex-start">Flex Start</option>
+              <option value="flex-end">Flex End</option>
+              <option value="center">Center</option>
+              <option value="baseline">Baseline</option>
+            </select>
+          </div>
+        </>
+      )}
 
       <div className="mb-3">
         <label className="form-label">Element Type</label>
@@ -511,7 +904,7 @@ const PropertiesPanel = () => {
             </div>
           </>
         )}
-      {/* image upload  */}
+
       {selectedElement.type === "image" && (
         <div className="mb-3">
           <label className="form-label">Image</label>
@@ -553,5 +946,27 @@ const PropertiesPanel = () => {
     </div>
   );
 };
+
+// Helper function to get nested values from object using a path string like "sections[0].title"
+function getNestedValue(obj, path) {
+  if (!obj || !path) return "";
+
+  // Handle array notation like "addresses[0]"
+  if (path.includes("[")) {
+    const matches = path.match(/(.+?)\[(\d+)\](?:\.(.+))?/);
+    if (matches) {
+      const [_, arrayName, index, remainingPath] = matches;
+      const array = obj[arrayName];
+      if (Array.isArray(array) && array[index] !== undefined) {
+        if (remainingPath) {
+          return getNestedValue(array[index], remainingPath);
+        }
+        return array[index];
+      }
+    }
+  }
+
+  return obj[path] || "";
+}
 
 export default PropertiesPanel;

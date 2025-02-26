@@ -30,8 +30,11 @@ const DocumentEditor = () => {
       body: { margin: "0", padding: "0", display: "block" },
       footer: { margin: "0", padding: "0", display: "block" },
       logoAlignment: { margin: "0", padding: "0", display: "block" },
+      logoMargin: { top: 0, right: 0, bottom: 0, left: 0 },
+      logoPadding: { top: 0, right: 0, bottom: 0, left: 0 },
       // Add styles for all document fields
     },
+    logo: null,
     date: "18/02/2025",
     companyName: "matrix pharma 1",
     addresses: ["Vietnam Kon Tum Kon Tum", "Hung Yên, Hung Yên", "Vietnam"],
@@ -72,6 +75,12 @@ const DocumentEditor = () => {
     }
   }, [documentContent, dispatch]);
 
+  useEffect(() => {
+    if (documentContent?.logo) {
+      setLogo(documentContent.logo);
+    }
+  }, [documentContent]);
+
   const handleTextChange = (field, value) => {
     setDocument((prev) => ({
       ...prev,
@@ -85,11 +94,9 @@ const DocumentEditor = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setLogo(reader.result);
-        // Also store logo in document content
-        dispatch(
-          updateDocumentContent({ field: "logo", value: reader.result })
-        );
+        const logoData = reader.result;
+        setLogo(logoData);
+        dispatch(updateDocumentContent({ field: "logo", value: logoData }));
       };
       reader.readAsDataURL(file);
     }
@@ -100,15 +107,51 @@ const DocumentEditor = () => {
     dispatch(selectElement(logoId));
   };
 
-  const getLogoAlignmentStyle = () => {
+  const getLogoStyles = () => {
     const alignment = documentContent?.logoAlignment || "left";
+    const logoMargin = documentContent?.logoMargin || {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    };
+    const logoPadding = documentContent?.logoPadding || {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    };
+
+    const alignmentStyle = {
+      margin: `${logoMargin.top}px ${logoMargin.right}px ${logoMargin.bottom}px ${logoMargin.left}px`,
+      padding: `${logoPadding.top}px ${logoPadding.right}px ${logoPadding.bottom}px ${logoPadding.left}px`,
+    };
+
     switch (alignment) {
       case "center":
-        return { margin: "0 auto", display: "block", textAlign: "center" };
+        return {
+          ...alignmentStyle,
+          marginLeft: "auto",
+          marginRight: "auto",
+          display: "block",
+          textAlign: "center",
+        };
       case "right":
-        return { marginLeft: "auto", display: "block", textAlign: "right" };
+        return {
+          ...alignmentStyle,
+          marginLeft: "auto",
+          marginRight: logoMargin.right + "px",
+          display: "block",
+          textAlign: "right",
+        };
       default: // "left"
-        return { marginRight: "auto", display: "block", textAlign: "left" };
+        return {
+          ...alignmentStyle,
+          marginLeft: logoMargin.left + "px",
+          marginRight: "auto",
+          display: "block",
+          textAlign: "left",
+        };
     }
   };
 
@@ -116,10 +159,14 @@ const DocumentEditor = () => {
     const fieldStyles = documentContent?.styles?.[field] || {};
     const isSelected = selectedElementId === `document-${field}`;
 
+    // In DocumentEditor's renderEditableField function
+    const isDocumentField = field.startsWith("document-");
+    const fieldName = isDocumentField ? field.split("document-")[1] : field;
     const handleClick = (e) => {
       e.stopPropagation();
       dispatch(selectElement(`document-${field}`));
     };
+
     return (
       <div
         className={`editable-field ${isSelected ? "selected" : ""}`}
@@ -176,7 +223,7 @@ const DocumentEditor = () => {
           className={`logo-section mb-3 ${
             selectedElementId === logoId ? "border border-primary" : ""
           }`}
-          style={getLogoAlignmentStyle()}
+          style={getLogoStyles()}
         >
           <label className="logo-upload-btn">
             <input
@@ -195,11 +242,11 @@ const DocumentEditor = () => {
                 style={{
                   //   maxWidth: "200px",
                   cursor: "pointer",
-                  width: documentContent.logoWidth
-                    ? `${documentContent.logoWidth}px`
+                  width: documentContent?.logoWidth
+                    ? `${documentContent?.logoWidth}px`
                     : "auto",
-                  height: documentContent.logoHeight
-                    ? `${documentContent.logoHeight}px`
+                  height: documentContent?.logoHeight
+                    ? `${documentContent?.logoHeight}px`
                     : "auto",
                 }}
                 onClick={handleLogoClick}
