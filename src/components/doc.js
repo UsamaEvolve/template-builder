@@ -1,22 +1,319 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import RowElement from "./RowElement";
+import FormElement from "./FormElement";
+import { useSelector, useDispatch } from "react-redux";
+import { updateDocumentContent, selectElement } from "../redux/templateSlice";
 
 const Doc = () => {
+  const dispatch = useDispatch();
+  const [logo, setLogo] = useState(null);
+  const [editingField, setEditingField] = useState(null);
+
+  const handleTextChange = (field, value) => {
+    setDocument((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    dispatch(updateDocumentContent({ field, value }));
+  };
+  const initialDocument = {
+    // styles: {
+    //   date: { margin: "0", padding: "0", display: "block" },
+    //   companyName: { margin: "0", padding: "0", display: "block" },
+    //   addresses: { margin: "0", padding: "0", display: "block" },
+    //   accordiaAddress: { margin: "0", padding: "0", display: "block" },
+    //   title: { margin: "0", padding: "0", display: "block" },
+    //   recipient: { margin: "0", padding: "0", display: "block" },
+    //   body: { margin: "0", padding: "0", display: "block" },
+    //   footer: { margin: "0", padding: "0", display: "block" },
+
+    //   logoAlig: { margin: "0", padding: "0", display: "block" },
+    //   logoMargin: { top: 0, right: 0, bottom: 0, left: 0 },
+    //   logoPadding: { top: 0, right: 0, bottom: 0, left: 0 },
+    //   logoAlignment: { top: 0, right: 0, bottom: 0, left: 0 },
+
+    //   // Add styles for all document fields
+    // },
+    // logo: null,
+    date: "18/02/2025",
+    companyName: "matrix pharma 1",
+    addresses: ["Vietnam Kon Tum Kon Tum", "Hung Yên, Hung Yên", "Vietnam"],
+    accordiaAddress: `ACCORDIA GLOBAL COMPLIANCE GROUP VIETNAM
+    Room 3, Floor 6, No 23B, Road No 3, Block 2, An Khanh Ward
+    Thù Đức, Ho Chi Minh
+    Vietnam`,
+    title: "Quotation for SMETA (FULL INITIAL AUDIT) Certification Services",
+    recipient: "DR Umair",
+    body: `Thank you for application and considering Accordia Global Compliance Group for your SMETA (FULL INITIAL
+    AUDIT) audit. You have chosen a premier auditing company with a strong reputation for competence, integrity
+    and responsiveness to its clients. We are sure you will agree that our people, audit expertise and our relentless
+    commitment to exceptional customer service makes us different.`,
+    sections: [
+      {
+        title: "Part 1",
+        content:
+          "Provides the cost details for your services as well as the length, on days, of your audit",
+      },
+      {
+        title: "Part 2",
+        content: "Provides the scope of the audit and site(s) details",
+      },
+    ],
+    footer: `This proposal is considered confidential property of Accordia Global Compliance Group and is intended for the sole
+    use of and is not be shared outside of either organization`,
+    listItems: [
+      "In the case of multi-site certificates, if the certified organization demonstrates a systemic failure in meeting SA8000:2014 requirements, then Accordia will review whether the certified organization should have their multi-site certification canceled.",
+      "The client agrees to provide full access during working hours (including night shift) to Accordia and/or SAAS Audit team to client organization's premises, employees and documents enabling the team to conduct Special Audits (on announced, semi-announced and unannounced basis) in compliance with SAAS Accreditation requirements.",
+      "Client agrees to abide by all terms & conditions for SA 8000 certification and audit process defined in SAAS Procedures, 200, 200A, 201A and any advisories issued by SAAS from time to time.",
+      "The client gives permission to make copies of documents, to take photographs of non-proprietary processes and at locations around the site as required by the SA 8000 audit process. Such information and other confidential SA 8000 audit outcomes will remain confidential and will only be shared with SAAS and SAI as part of the oversight system.",
+      "Client understands and agrees to share and allow Accordia to share audit information for Transfer purpose as required by SAAS Procedure 200",
+      "Client confirms to have read, understood and agree to comply with the Certification Rules available on Accordia website www.accordiausa.com. These rules are part of the certification service quotation",
+    ],
+    // Add default logo alignment
+  };
+  const [document, setDocument] = useState(initialDocument);
+
+  const elementIds = {
+    logo: "logo-element",
+    date: "date-element",
+    companyName: "company-name-element",
+    addresses: "addresses-element",
+    accordiaAddress: "accordia-address-element",
+    title: "title-element",
+    recipient: "recipient-element",
+    body: "body-element",
+    sections: "sections-element",
+    footer: "footer-element",
+  };
+  const documentContent = useSelector((state) => {
+    console.log(
+      state.template.documentContent,
+      "state.template.documentContent"
+    );
+    return state.template.documentContent || {};
+  });
+  const renderElement = (element) => {
+    if (element.type === "row") {
+      return <RowElement key={element.id} element={element} />;
+    }
+    return <FormElement key={element.id} element={element} />;
+  };
+
+  const spacingToCss = (spacingObj) => {
+    const spacing = parseSpacingValue(spacingObj);
+    return `${spacing.top}px ${spacing.right}px ${spacing.bottom}px ${spacing.left}px`;
+  };
+
+  const parseSpacingValue = (value) => {
+    if (!value) return { top: 0, right: 0, bottom: 0, left: 0 };
+
+    if (typeof value === "string") {
+      return { top: 0, right: 0, bottom: 0, left: 0 };
+    }
+
+    // Handle object with numbered keys like {0: "0", top: 10}
+    if (typeof value === "object") {
+      return {
+        top: value.top || 0,
+        right: value.right || 0,
+        bottom: value.bottom || 0,
+        left: value.left || 0,
+      };
+    }
+
+    return { top: 0, right: 0, bottom: 0, left: 0 };
+  };
+  const getElementStyles = (field) => {
+    if (!documentContent?.styles) return {};
+
+    const fieldStyles = documentContent.styles[field] || {};
+    const margin = parseSpacingValue(fieldStyles.margin);
+    const padding = parseSpacingValue(fieldStyles.padding);
+    const textAlign = fieldStyles.textAlign || "left";
+
+    return {
+      margin: spacingToCss(margin),
+      padding: spacingToCss(padding),
+      display: fieldStyles.display || "block",
+      textAlign: textAlign,
+    };
+  };
+  const elements = useSelector((state) => state.template.elements || []);
+
+  const selectedElementId = useSelector(
+    (state) => state.template.selectedElementId
+  );
+  const renderEditableField = (field, value, isMultiline = false) => {
+    const fieldStyles = documentContent?.styles?.[field] || {};
+    const isSelected = selectedElementId === `document-${field}`;
+    const margin = parseSpacingValue(fieldStyles.margin);
+    const padding = parseSpacingValue(fieldStyles.padding);
+
+    // Use the value from Redux if available, otherwise fallback to local state
+    const displayValue = documentContent[field] || value;
+
+    const handleClick = (e) => {
+      e.stopPropagation();
+      dispatch(selectElement(`document-${field}`));
+    };
+
+    return (
+      <div
+        className={`editable-field ${isSelected ? "selected" : ""}`}
+        onClick={handleClick}
+        style={{
+          margin: spacingToCss(margin),
+          padding: spacingToCss(padding),
+          display: fieldStyles.display || "block",
+          flexGrow: fieldStyles.flex?.grow || "initial",
+          cursor: "pointer",
+        }}
+      >
+        {editingField === field ? (
+          isMultiline ? (
+            <textarea
+              value={displayValue}
+              onChange={(e) => handleTextChange(field, e.target.value)}
+              onBlur={() => setEditingField(null)}
+              autoFocus
+            />
+          ) : (
+            <input
+              type="text"
+              value={displayValue}
+              onChange={(e) => handleTextChange(field, e.target.value)}
+              onBlur={() => setEditingField(null)}
+              autoFocus
+            />
+          )
+        ) : (
+          <div>
+            {displayValue.split("\n").map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const getLogoStyles = () => {
+    const alignment = documentContent?.logoAlignment || "right";
+    const logoMargin = documentContent?.logoMargin || {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    };
+
+    const logoPadding = documentContent?.logoPadding || {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    };
+
+    const alignmentStyle = {
+      margin: `${logoMargin.top}px ${logoMargin.right}px ${logoMargin.bottom}px ${logoMargin.left}px`,
+      padding: `${logoPadding.top}px ${logoPadding.right}px ${logoPadding.bottom}px ${logoPadding.left}px`,
+    };
+
+    switch (alignment) {
+      case "center":
+        return {
+          ...alignmentStyle,
+          marginLeft: "auto",
+          marginRight: "auto",
+          display: "block",
+          textAlign: "center",
+        };
+      case "left":
+        return {
+          ...alignmentStyle,
+          marginLeft: logoMargin.left + "px",
+          marginRight: "auto",
+          display: "block",
+          textAlign: "left",
+        };
+      default:
+        return {
+          ...alignmentStyle,
+          marginLeft: "auto",
+          marginRight: logoMargin.right + "px",
+          display: "block",
+          textAlign: "right",
+        };
+    }
+  };
+
+  const handleElementSelect = (elementId) => (e) => {
+    e.stopPropagation();
+    dispatch(selectElement(elementId));
+  };
+  useEffect(() => {
+    if (documentContent) {
+      setDocument((prev) => ({
+        ...prev,
+        ...documentContent,
+      }));
+    }
+  }, [documentContent]);
+  useEffect(() => {
+    // Initialize Redux store with default values if documentContent is empty
+    if (!documentContent || Object.keys(documentContent).length === 0) {
+      Object.entries(initialDocument).forEach(([field, value]) => {
+        dispatch(updateDocumentContent({ field, value }));
+      });
+    }
+  }, [documentContent, dispatch]);
+  useEffect(() => {
+    if (documentContent?.logo) {
+      setLogo(documentContent.logo);
+    }
+  }, [documentContent]);
   return (
     <>
+      {elements.map((element, index) => renderElement(element, index))}
+
       <div className="page-styling mx-5 mb-3">
         <div className="row align-items-center">
-          <div className="col-6">
-            <p>26 February 2025</p>
+          <div style={getElementStyles("date")} className="col-6">
+            <p>{renderEditableField("date", document.date)}</p>
           </div>
           <div className="col-6">
-            <div className="text-end mb-3">
-              <img src="./logo.png" alt="logo" width="25%" />
+            <div
+              className={` mb-3 ${
+                selectedElementId === elementIds.logo
+                  ? "border border-primary"
+                  : ""
+              }`}
+              style={getLogoStyles()}
+            >
+              <img
+                src="./logo.png"
+                alt="Company Logo"
+                className={`company-logo editable ${
+                  selectedElementId === elementIds.logo ? "selected" : ""
+                }`}
+                style={{
+                  cursor: "pointer",
+                  width: documentContent?.logoWidth
+                    ? `${documentContent?.logoWidth}px`
+                    : "auto",
+                  height: documentContent?.logoHeight
+                    ? `${documentContent?.logoHeight}px`
+                    : "auto",
+                }}
+                onClick={handleElementSelect(elementIds.logo)}
+              />
             </div>
           </div>
         </div>
         <div className="row">
           <div className="col">
-            <p className="fw-bold normalTextPdf">matrix pharma 1</p>
+            <div style={getElementStyles("companyName")}>
+              {renderEditableField("companyName", document.companyName)}
+            </div>
             <p className="fw-bold normalTextPdf"></p>
             <p className="fw-bold normalTextPdf">Vietnam</p>
             <p className="fw-bold normalTextPdf">Hưng Yên, Hung Yên</p>
@@ -48,16 +345,8 @@ const Doc = () => {
         <div className="col my-3">
           <h5 className="fw-600">DR Umair</h5>
         </div>
-        <div className="col my-3">
-          <p>
-            Thank you for application and considering Accordia Global Compliance
-            Group for your
-            <span className="fw-bold">Service Acquired</span> audit. You have
-            chosen a premier auditing company with a strong reputation for
-            competence, integrity and responsiveness to its clients. We are sure
-            you will agree that our people, audit expertise and our relentless
-            commitment to exceptional customer service makes us different.
-          </p>
+        <div style={getElementStyles("body")} className="col my-3">
+          <p>{renderEditableField("body", document.date)}</p>
         </div>
         <div className="col my-3">
           <p>
@@ -584,46 +873,12 @@ const Doc = () => {
           <div class="row my-3">
             <div class="col mx-4">
               <ol type="a">
-                <li>
-                  In the case of multi-site certificates, if the certified
-                  organization demonstrates a systemic failure in meeting
-                  SA8000:2014 requirements, then Accordia will review whether
-                  the certified organization should have their multi-site
-                  certification canceled.
-                </li>
-                <li>
-                  The client agrees to provide full access during working hours
-                  (including night shift) to Accordia and/or SAAS Audit team to
-                  client organization’s premises, employees and documents
-                  enabling the team to conduct Special Audits (on announced,
-                  semi-announced and unannounced basis) in compliance with SAAS
-                  Accreditation requirements.
-                </li>
-                <li>
-                  Client agrees to abide by all terms & conditions for SA 8000
-                  certification and audit process defined in SAAS Procedures,
-                  200, 200A, 201A and any advisories issued by SAAS from time to
-                  time.
-                </li>
-                <li>
-                  The client gives permission to make copies of documents, to
-                  take photographs of non-proprietary processes and at locations
-                  around the site as required by the SA 8000 audit process. Such
-                  information and other confidential SA 8000 audit outcomes will
-                  remain confidential and will only be shared with SAAS and SAI
-                  as part of the oversight system.
-                </li>
-                <li>
-                  Client understands and agrees to share and allow Accordia to
-                  share audit information for Transfer purpose as required by
-                  SAAS Procedure 200
-                </li>
-                <li>
-                  Client confirms to have read, understood and agree to comply
-                  with the Certification Rules available on Accordia website
-                  www.accordiausa.com. These rules are part of the certification
-                  service quotation.
-                </li>
+                {document.listItems &&
+                  document.listItems.map((item, index) => (
+                    <li key={index} style={getElementStyles("date")}>
+                      {renderEditableField(`listItems[${index}]`, item, true)}
+                    </li>
+                  ))}
               </ol>
             </div>
           </div>

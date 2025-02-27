@@ -68,7 +68,6 @@ const DocumentEditor = () => {
     use of and is not be shared outside of either organization`,
     logoAlignment: "left", // Add default logo alignment
   };
-
   const [document, setDocument] = useState(initialDocument);
 
   // Initialize document content in Redux if it's null

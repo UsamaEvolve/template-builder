@@ -55,6 +55,7 @@ const PropertiesPanel = () => {
   const handleDocumentFieldStyleChange = (property, value) => {
     if (documentField) {
       const currentStyles = documentContent.styles?.[documentField] || {};
+
       dispatch(
         updateDocumentContent({
           field: "styles",
@@ -356,7 +357,7 @@ const PropertiesPanel = () => {
           />
         </div>
 
-        <div className="mb-3">
+        {/* <div className="mb-3">
           <label className="form-label">Display</label>
           <select
             className="form-select"
@@ -370,7 +371,7 @@ const PropertiesPanel = () => {
             <option value="inline">Inline</option>
             <option value="inline-block">Inline Block</option>
           </select>
-        </div>
+        </div> */}
 
         <div className="mb-3">
           <label className="form-label">Margin</label>
@@ -408,7 +409,7 @@ const PropertiesPanel = () => {
           </div>
         </div>
 
-        <div className="mb-3">
+        {/* <div className="mb-3">
           <label className="form-label">Font Style</label>
           <div className="row g-2">
             <div className="col-6">
@@ -439,7 +440,7 @@ const PropertiesPanel = () => {
               </select>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="mb-3">
           <label className="form-label">Text Alignment</label>
@@ -453,7 +454,6 @@ const PropertiesPanel = () => {
             <option value="left">Left</option>
             <option value="center">Center</option>
             <option value="right">Right</option>
-            <option value="justify">Justify</option>
           </select>
         </div>
 
@@ -556,16 +556,16 @@ const PropertiesPanel = () => {
           <label className="form-label">Logo Alignment</label>
           <select
             className="form-select"
-            value={documentContent.logoAlignment || "left"}
+            value={documentContent.logoAlignment || "right"}
             onChange={handleLogoAlignmentChange}
           >
-            <option value="left">Left</option>
-            <option value="center">Center</option>
             <option value="right">Right</option>
+            <option value="center">Center</option>
+            <option value="left">Left</option>
           </select>
         </div>
 
-        <div className="mb-3">
+        {/* <div className="mb-3">
           <label className="form-label">Change Logo</label>
           <input
             type="file"
@@ -573,7 +573,7 @@ const PropertiesPanel = () => {
             accept="image/*"
             onChange={handleLogoUpload}
           />
-        </div>
+        </div> */}
 
         <div className="mb-3">
           <label className="form-label">Logo Width</label>
