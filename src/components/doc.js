@@ -143,7 +143,7 @@ const Doc = () => {
   const selectedElementId = useSelector(
     (state) => state.template.selectedElementId
   );
-  const renderEditableField = (field, value, isMultiline = false) => {
+  const renderEditableField = (field, value, isMultiline = false, onChange) => {
     const fieldStyles = documentContent?.styles?.[field] || {};
     const isSelected = selectedElementId === `document-${field}`;
     const margin = parseSpacingValue(fieldStyles.margin);
