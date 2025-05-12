@@ -12,6 +12,9 @@ const Doc = () => {
   const initialDocument = {
     date: "18/02/2025",
     companyName: "matrix pharma 1",
+    address1: "Vietnam",
+    address2: "Hung Yên, Hung Yên",
+    address3: "Kon Tum Kon Tum",
     addresses: ["Vietnam Kon Tum Kon Tum", "Hung Yên, Hung Yên", "Vietnam"],
     accordiaAddress: `ACCORDIA GLOBAL COMPLIANCE GROUP VIETNAM
     Room 3, Floor 6, No 23B, Road No 3, Block 2, An Khanh Ward
@@ -289,9 +292,15 @@ const Doc = () => {
                 {renderEditableField("companyName", document.companyName)}
               </div>
               <p className="fw-bold normalTextPdf"></p>
-              <p className="fw-bold normalTextPdf">Vietnam</p>
-              <p className="fw-bold normalTextPdf">Hưng Yên, Hung Yên</p>
-              <p className="fw-bold normalTextPdf">32400, Vietnam</p>
+              <p className="fw-bold normalTextPdf">
+                {renderEditableField("address1", document.address1)}
+              </p>
+              <p className="fw-bold normalTextPdf">
+                {renderEditableField("address2", document.address2)}
+              </p>
+              <p className="fw-bold normalTextPdf">
+                {renderEditableField("address3", document.address3)}
+              </p>
             </div>
             <div className="col">
               <div className="text-end">
@@ -313,7 +322,8 @@ const Doc = () => {
           </div>
           <div className="col my-3">
             <h5 className="fw-600">
-              Quotation for SMETA (FULL INITIAL AUDIT) Certivcation Sersicey
+              {/* Quotation for SMETA (FULL INITIAL AUDIT) Certivcation  */}
+              {renderEditableField("title", document.title)}
             </h5>
           </div>
           <div className="col my-3">
