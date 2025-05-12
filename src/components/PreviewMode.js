@@ -86,7 +86,6 @@ const PreviewMode = ({ onDownloadPDF }) => {
 
   return (
     <div className="previews-mode" ref={previewContainerRef}>
-      <Doc />
       <button
         className="btn btn-primary mt-3 mb-3"
         onClick={handleDownloadPDF}
@@ -101,6 +100,7 @@ const PreviewMode = ({ onDownloadPDF }) => {
       >
         Download PDF
       </button>
+      <Doc />
     </div>
   );
 };
