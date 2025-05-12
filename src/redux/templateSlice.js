@@ -28,7 +28,6 @@ export const templateSlice = createSlice({
       state.nextId += 1;
 
       if (action.payload.targetId) {
-        // Add to specific row/column
         const targetIndex = state.elements.findIndex(
           (el) => el.id === action.payload.targetId
         );
@@ -46,13 +45,11 @@ export const templateSlice = createSlice({
           }
         }
       } else {
-        // Add to root level
         state.elements.push(newElement);
       }
     },
 
     updateElementStyles: (state, action) => {
-      console.log("updateElementStyles called with payload:", action.payload); // Debugging
       const { id, styles } = action.payload;
 
       const updateNestedElementStyles = (elements) => {
@@ -72,10 +69,10 @@ export const templateSlice = createSlice({
 
       state.elements = updateNestedElementStyles(state.elements);
     },
+
     updateElement: (state, action) => {
       const { id, properties } = action.payload;
 
-      // Helper function to update nested elements
       const updateNestedElement = (elements) => {
         return elements.map((el) => {
           if (el.id === id) {
@@ -90,10 +87,10 @@ export const templateSlice = createSlice({
 
       state.elements = updateNestedElement(state.elements);
     },
+
     removeElement: (state, action) => {
       const id = action.payload;
 
-      // Helper function to remove nested elements
       const filterNestedElements = (elements) => {
         return elements.filter((el) => {
           if (el.id === id) {
@@ -108,28 +105,30 @@ export const templateSlice = createSlice({
 
       state.elements = filterNestedElements(state.elements);
 
-      // If the selected element was removed, clear selection
       if (state.selectedElementId === id) {
         state.selectedElementId = null;
       }
     },
+
     selectElement: (state, action) => {
       state.selectedElementId = action.payload;
     },
+
     clearSelection: (state) => {
       state.selectedElementId = null;
     },
+
     togglePreviewMode: (state) => {
       state.isPreviewMode = !state.isPreviewMode;
       if (state.isPreviewMode) {
         state.selectedElementId = null;
       }
     },
+
     moveElement: (state, action) => {
       const { sourceId, destinationId, sourceIndex, destinationIndex } =
         action.payload;
 
-      // Function to find element and parent by ID
       const findElementAndParent = (elements, id, parent = null) => {
         for (let i = 0; i < elements.length; i++) {
           if (elements[i].id === id) {
@@ -149,7 +148,6 @@ export const templateSlice = createSlice({
         return { element: null, parent: null, index: -1 };
       };
 
-      // Find source container and element
       let sourceContainer = state.elements;
       if (sourceId !== "root") {
         const { element } = findElementAndParent(state.elements, sourceId);
@@ -158,7 +156,6 @@ export const templateSlice = createSlice({
         }
       }
 
-      // Find destination container
       let destContainer = state.elements;
       if (destinationId !== "root") {
         const { element } = findElementAndParent(state.elements, destinationId);
@@ -167,39 +164,36 @@ export const templateSlice = createSlice({
         }
       }
 
-      // Perform the move
       const [removed] = sourceContainer.splice(sourceIndex, 1);
       destContainer.splice(destinationIndex, 0, removed);
     },
+
     importTemplate: (state, action) => {
       const importedState = action.payload;
       return { ...importedState, isPreviewMode: state.isPreviewMode };
     },
+
     resetTemplate: (state) => {
       return { ...initialState, nextId: state.nextId };
     },
+
     updateDocumentContent: (state, action) => {
       const { field, value } = action.payload;
       if (field.startsWith("styles.")) {
         const styleField = field.split(".")[1];
-        return {
-          ...state,
-          documentContent: {
-            ...state.documentContent,
-            styles: {
-              ...state.documentContent.styles,
-              [styleField]: value,
-            },
+        state.documentContent = {
+          ...state.documentContent,
+          styles: {
+            ...state.documentContent?.styles,
+            [styleField]: value,
           },
         };
-      }
-      return {
-        ...state,
-        documentContent: {
+      } else {
+        state.documentContent = {
           ...state.documentContent,
           [field]: value,
-        },
-      };
+        };
+      }
     },
   },
 });

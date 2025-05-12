@@ -1,8 +1,11 @@
 import React from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Draggable, Droppable } from "react-beautiful-dnd";
-import { selectElement, addElement } from "../redux/templateSlice";
-import FormElement from "./FormElement";
+import {
+  selectElement,
+  addElement,
+  removeElement,
+} from "../redux/templateSlice";
 import ColumnElement from "./ColumnElement";
 
 const RowElement = ({ element, index }) => {
@@ -22,32 +25,22 @@ const RowElement = ({ element, index }) => {
     dispatch(
       addElement({
         type: "column",
-        children: [],
         targetId: element.id,
       })
     );
   };
 
+  const handleRemove = (e) => {
+    e.stopPropagation();
+    dispatch(removeElement(element.id));
+  };
+
   const renderChild = (child, childIndex) => {
-    if (child.type === "column") {
-      return (
-        <ColumnElement
-          key={child.id}
-          element={child}
-          index={childIndex}
-          parentId={element.id}
-        />
-      );
-    } else {
-      return (
-        <FormElement
-          key={child.id}
-          element={child}
-          index={childIndex}
-          parentId={element.id}
-        />
-      );
-    }
+    return (
+      <div className="col" key={child.id}>
+        <ColumnElement element={child} index={childIndex} />
+      </div>
+    );
   };
 
   return (
@@ -62,12 +55,20 @@ const RowElement = ({ element, index }) => {
         >
           <div className="mb-2 d-flex justify-content-between align-items-center">
             <small className="text-muted">Row</small>
-            <button
-              className="btn btn-sm btn-outline-primary"
-              onClick={handleAddColumn}
-            >
-              Add Column
-            </button>
+            <div>
+              <button
+                className="btn btn-sm btn-outline-primary me-2"
+                onClick={handleAddColumn}
+              >
+                Add Column
+              </button>
+              <button
+                className="btn btn-sm btn-outline-danger"
+                onClick={handleRemove}
+              >
+                Remove
+              </button>
+            </div>
           </div>
 
           <Droppable
@@ -79,7 +80,7 @@ const RowElement = ({ element, index }) => {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="row-container"
+                className="row-container row"
               >
                 {element.children && element.children.length > 0 ? (
                   element.children.map((child, childIndex) =>

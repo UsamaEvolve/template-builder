@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Droppable } from "react-beautiful-dnd";
 import { clearSelection } from "../redux/templateSlice";
 import DocumentEditor from "./DocumentEditor";
-import Doc from "./doc";
+import Doc from "./Doc";
 
 const WorkspaceCanvas = () => {
   const dispatch = useDispatch();

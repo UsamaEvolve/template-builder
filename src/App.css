@@ -169,3 +169,54 @@
 .normalTextPdf {
   font-size: 14px;
 }
+/* A4 Size Styling for Preview */
+.a4-page {
+  width: 794px;
+  height: 1123px;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+  margin: 20px auto;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+  page-break-after: always;
+  transform-origin: top center;
+  position: relative;
+}
+.preview-mode {
+  background: #f1f3f5; /* Light background for contrast */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center cards horizontally */
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  width: 100%;
+  height: 100vh; /* Ensure full viewport height */
+}
+
+@media print {
+  .a4-page {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 10mm;
+    box-shadow: none; /* Remove shadow for print */
+    border: none; /* Remove border for print */
+    transform: none !important; /* Ensure no scaling in print */
+  }
+  body {
+    margin: 0;
+  }
+  .preview-mode {
+    padding: 0;
+    background: none;
+    overflow: visible;
+  }
+  .btn {
+    display: none; /* Hide Download PDF button during print */
+  }
+}
